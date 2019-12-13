@@ -6,3 +6,24 @@
    ReentranLock 可以通过代码释放锁，可以设置锁超时。
   *高并发下，Synchronized、ReentranLock 效率低，因为同一时刻只有一个线程能进入同步代码块，如果同时有很多线程访问，那么其它线程就都在等待锁。
    这个时候可以使用并发包下的数据结构，例如ConcurrentHashMap，LinkBlockingQueue，以及原子性的数据结构如：AtomicInteger。
+   
+*== 对于基本类型来说是值比较，对于引用类型来说是比较的是引用；而 equals 默认情况下是引用比较，只是很多类重写了 equals 方法，比如 String、Integer 
+ 等把它变成了值比较，所以一般情况下 equals 比较的是值是否相等。
+
+*HashMap的底层实现原理：HashMap通过put()和get()方法存值和取值。
+ *存值时，通过hashcode()方法计算键的hashcode值，然后找到对应的bucket位置来存储
+  键值对，如果两个键值对的键的hashcode值相同，则调用键对象的equals()方法来判断两个键对象是否相同，若相同，新值替换旧值并返回旧值，如果两个键
+  对象不同，则使用链表来解决碰撞问题，键值对将会存储在链表的下一个节点中。
+ *取值时，通过键对象的equals方法对比传进来的参数，从而找到正确的键值对，然后返回值对象。
+相关面试题：
+ *什么是HashMap,你为什么用到它？
+ *HashMap的工作原理是什么？HashMap的get()方法的工作原理？
+ *当两个对象的hashcode相同会发生什么？
+ *如果两个键的hashcode相同，你如何获取值对象？
+ *如果HashMap的大小超过了负载因子定义的容量，怎么办？
+ *在多线程情况下，重新调整HashMap大小会存在什么问题吗？
+ *为什么String,Integer这样的wrapper适合作为键？
+ *我们可以使用自定义的对象作为键吗？
+ 链接：https://blog.csdn.net/suifeng629/article/details/82179996
+
+ 
