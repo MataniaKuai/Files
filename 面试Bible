@@ -69,6 +69,8 @@
    简单的修改集合元素的内容），那么这个时候程序就会抛出 ConcurrentModificationException 异常，从而产生fail-fast机制。
   链接：https://blog.csdn.net/qq_34417408/article/details/80041466
   
+ *Hashtable和ConcurrentHashMap
+  
  
        
 
