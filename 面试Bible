@@ -12,8 +12,8 @@
 
 *HashMap的底层实现原理：HashMap通过put()和get()方法存值和取值。
  *存值时，通过hashcode()方法计算键的hashcode值，然后找到对应的bucket位置来存储
-  键值对，如果两个键值对的键的hashcode值相同，则调用键对象的equals()方法来判断两个键对象是否相同，若相同，新值替换旧值并返回旧值，如果两个键
-  对象不同，则使用链表来解决碰撞问题，键值对将会存储在链表的下一个节点中。
+  键值对，如果两个键值对的键的hashcode值相同，则调用键对象的equals()方法来判断两个键对象是否相同，若相同，新值替换旧值并返回旧值(例：原先
+  （16，21），现put(16,22)则22替换21并返回21)，如果两个键对象不同，则使用链表来解决碰撞问题，键值对将会存储在链表的下一个节点中。
  *取值时，通过键对象的equals方法对比传进来的参数，从而找到正确的键值对，然后返回值对象。
 相关面试题：
  *什么是HashMap,你为什么用到它？
@@ -25,5 +25,51 @@
  *为什么String,Integer这样的wrapper适合作为键？
  *我们可以使用自定义的对象作为键吗？
  链接：https://blog.csdn.net/suifeng629/article/details/82179996
+ 
+*HashMap与HashSet区别
+ HashSet：实现了Set接口，不允许集合中有重复的值，将对象存储在HashSet之前，要先确保对象重写equals()和hashCode()方法，这样
+          才能比较对象的值是否相等，以确保set中没有存储相等的对象。如果没有重写这两个方法，将会使用这个方法的默认实现。
+ HashMap：实现了Map接口，Map接口对键值进行映射，键不允许重复，Map接口有两个基本实现，HashMap和TreeMap，TreeMap保存了对象
+          的排列次序，而HashMap则不能。HashMap允许键和值为null,HashMap是非synchronized的。
+ 区别：*HashMap使用键对象来计算hashcode值；HashSet使用成员对象来计算hashcode值，对于两个对象来说hashcode可能相同，所以需要
+        使用equals()方法比较对象是否相等，若相等则返回false，否则插入。
+       *HashMap比较快，因为是使用唯一的键来获取对象，而HashSet通过遍历来获取对象。
+       
+*HashMap与HashTable区别
+ *初始长度：HashMap默认情况下容量是16，如果用户通过构造函数指定了一个数字作为容量，那么Hash会选择大于该数字的第一个2的幂作为
+  容量（3--4，7--8，9--16）。HashTable默认初始化长度为11.
+ *扩容：HashMap：当HashMap中的元素个数超过数组大小*loadFactor时，就会进行数组扩容，loadFactor的默认值是0.75，默认情况下，数组大小
+  16，当hashmap中元素个数超过16*0.75=12的时候，就把数组大小扩展为2*16=32，即扩大一倍，然后重新计算每个元素在数组中的位置。
+  HashTable：扩容大小是2倍旧长度+1
+ *线程安全：HashMap是非synchronized，而HashTable是synchronized,HashTable是线程安全的，多个线程可以共享一个HashTable；如果没有
+  正确的同步的花，多个线程是不能共享HashMap的。
+ *速度：由于HashTable是线程安全的也是synchronized，所以在单线程环境下它比HashMap要慢。如果不需要同步，只需要单一线程，那么使用
+  HashMap性能要好过HashTable.
+ *迭代器：HashMap的迭代器（Iterator）是fail-fast迭代器，而HashTable的enumerator迭代器不是fail-fast的。
+ *其他：
+  *HashMap可以允许存在一个为null的key和任意个为null的value,但是HashTable中的key和value都不允许为null。当HashMap遇到null
+   的key时，它会调用putForNullKey方法来进行处理，对于value没有进行任何处理，只要是对象即可。而当hashtable遇到null时，他会直接抛出
+   NullPointerException异常信息。
+  *HashTable基于Dictionary类，而HashMap是基于AbstractMap。Dictionary是可以将键映射到相应值得类的抽象符类，而AbstractMap是基于Map
+   接口实现的，它以最大限度地减少实现此接口所需的工作。
+  *
+  HashTable链接：https://www.cnblogs.com/chenssy/p/3643886.html
+ 
+ *enumerator迭代器和Iterator迭代器
+  *函数接口不同
+   Enumeration只有2个函数接口。通过Enumeration，我们只能读取集合的数据，而不能对数据进行修改。
+   Iterator只有3个函数接口。Iterator除了能读取集合的数据之外，也能数据进行删除操作。
+  *Iterator支持fail-fast机制，而Enumeration不支持。
+   Enumeration 是JDK 1.0添加的接口。使用到它的函数包括Vector、Hashtable等类，这些类都是JDK 1.0中加入的，Enumeration存在的目的就是为它们
+   提供遍历接口。Enumeration本身并没有支持同步，而在Vector、Hashtable实现Enumeration时，添加了同步。
+   而Iterator 是JDK 1.2才添加的接口，它也是为了HashMap、ArrayList等集合提供遍历接口。Iterator是支持fail-fast机制的：当多个线程对同一个集合
+   的内容进行操作时，就可能会产生fail-fast事件。
+   fail-fast:它是Java集合的一种错误检测机制。当多个线程对集合进行结构上的改变的操作时，有可能会产生fail-fast机制。记住是有可能，而不是一定。
+   例如：假设存在两个线程（线程1、线程2），线程1通过Iterator在遍历集合A中的元素，在某个时候线程2修改了集合A的结构（是结构上面的修改，而不是
+   简单的修改集合元素的内容），那么这个时候程序就会抛出 ConcurrentModificationException 异常，从而产生fail-fast机制。
+  链接：https://blog.csdn.net/qq_34417408/article/details/80041466
+  
+ 
+       
 
  
