@@ -67,8 +67,21 @@
 		例如：假设存在两个线程（线程1、线程2），线程1通过Iterator在遍历集合A中的元素，在某个时候线程2修改了集合A的结构（是结构上面的修改，而不是
 		简单的修改集合元素的内容），那么这个时候程序就会抛出 ConcurrentModificationException 异常，从而产生fail-fast机制。
 	链接：https://blog.csdn.net/qq_34417408/article/details/80041466
-  
-*Hashtable和ConcurrentHashMap
+
+*Synchronized容器和Concurrent容器有什么区别？
+	在Java语言中，多线程安全的容器主要分为两种：Synchronized和Concurrent，虽然它们都是线程安全的，但是它们在性能方面差距比较大。
+	*Synchronized容器（同步容器）主要通过synchronized关键字来实现线程安全，在使用的时候会对所有的数据加锁。
+	 需要注意的是，由于同步容器将所有对容器状态的访问都串行化了，这样虽然保证了线程的安全性，但是这种方法的代价就是严重降低了并发性，当多个线程竞争容器时，吞吐量会严重降低。
+	*Concurrent容器（并发容器），Concurrent容器采用了更加智能的方案，该方案不是对整个数据加锁，而是采取了更加细粒度的锁机制，因此，在大并发量的情况下，拥有更高的效率。
+	
+*Hashtable和ConcurrentHashMap异同点
+	*相同点：Hashtable和ConcurrentHashMap存储的内容为键-值对（key-value），且它们都是线程安全的容器。
+	*不同点：
+		*Hashtable通过使用synchronized修饰方法的方式来实现多线程同步，因此，Hashtable的同步会锁住整个数组。在高并发的情况下，性能会非常差。
+		*ConcurrentHashMap作为高吞吐量的线程安全HashMap实现，它采用了锁分离的技术允许多个修改操作并发进行。
+		 ConcurrentHashMap采用了更细粒度的锁来提高在并发情况下的效率。ConcurrentHashMap将Hash表默认分为16个桶（每一个桶可以被看作是一个Hashtable），
+		 大部分操作都没有用到锁，而对应的put、remove等操作也只需要锁住当前线程需要用到的桶，而不需要锁住整个数据。采用这种设计方式以后，在大并发的情况下，
+		 同时可以有16个线程来访问数据。显然，大大提高了并发性。
 
 *left join 和 right join
 	*想要获取sc全部数据，student部分数据，两种sql写法如下：
@@ -84,6 +97,12 @@
 	(SELECT sc.SId FROM sc WHERE sc.`CId` = "02" AND sc.`score` > 80) as t1
 	left join(select student.`SId`, student.`Sname` from student)as t2
 	on t1.`SId` = t2.sid
+	
+*为何访问网站1连续访问两次，第一次需要输入用户名密码，第二次不用就可以直接登陆了？
+	*浏览器A第一次访问网站1时，浏览器A会携带该网址对应的cookie(cookie包含seesionId)去访问服务器，服务器会查看自己已有的sessionId是否有和浏览器带来的cookie中sessionId相同的，
+	 因为是第一次访问，没有相同的，服务器会创建一个新的sessionId，给cookie，这时候用户输入用户名密码进行登陆。当用户继续用浏览器A访问同一个网站，由于之前已经访问过，所以，
+	 服务器会查到浏览器携带的Cookie中的sessionId,有和服务器中已有的SessionId一致的，所以服务器程序通过判断，该用户之前已经登陆过了，所以第二次访问的时候就不需要再登陆了。
+	 如果此时再用浏览器B访问网站1，由于是新的浏览器，那么其中是没有上一个浏览器的cookie的，所以此时，服务器会重新分配一个新的sessionId给浏览器B，同样需要重新填写用户名密码进行登陆。
 
 
   
