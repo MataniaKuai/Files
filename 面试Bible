@@ -70,6 +70,10 @@
   链接：https://blog.csdn.net/qq_34417408/article/details/80041466
   
  *Hashtable和ConcurrentHashMap
+ 
+ *left join 和 right join
+  *想要获取sc全部数据，student部分数据，两种sql写法如下：
+   
   
  
        
