@@ -104,9 +104,228 @@
 	 服务器会查到浏览器携带的Cookie中的sessionId,有和服务器中已有的SessionId一致的，所以服务器程序通过判断，该用户之前已经登陆过了，所以第二次访问的时候就不需要再登陆了。
 	 如果此时再用浏览器B访问网站1，由于是新的浏览器，那么其中是没有上一个浏览器的cookie的，所以此时，服务器会重新分配一个新的sessionId给浏览器B，同样需要重新填写用户名密码进行登陆。
 
+*Java设计模式
+	0简单工厂模式
+		*生产电脑，分为hp电脑和lenovo电脑
+		01普通
+			*创建两个电脑的共同接口
+			public interface Computer{
+				public void create();
+			}
+			*创建两个实现类
+			public class HpComputer implements Computer{
+				@Override
+				public void create(){
+					System.out.println("this is HpComputer");
+				}
+			}
+			public class LenovoComputer implements Computer{
+				@Override
+				public void create(){
+					System.out.println("this is LenovoComputer");
+				}
+			}
+			*创建工厂类
+			public class ComputerFactory{
+				public Computer produce(String type){
+					if("Hp".equals(type)){
+						return new HpComputer();
+					}else if("Lenovo".equals(type)){
+						return new LenovoComputer();
+					}else{
+						System.out.println("请输入正确的类型！");
+						return null;
+					}
+				}
+			}
+			*测试
+			public class FactoryTest{
+				public static void main(String[] args){
+					ComputerFactory factory = new ComputerFactory();
+					Computer computer = factory.produce("Hp");
+					computer.create();
+				}
+			}
+			*输出：this is HpComputer
+		02多个方法
+			*对普通工厂方法模式的改进，在普通工厂方法模式中，如果传递的字符串出错，则不能正确创建对象
+			而多个工厂方法模式是提供多个工厂方法，分别创建对象。
+			*修改ComputerFactory
+			public class ComputerFactory{
+				public Computer produceHp(){
+					return new HpComputer();
+				}
+				public Computer produceLenovo(){
+					return new LenovoComputer();
+				}
+			}
+			*测试
+			public class FactoryTest{
+				public static void main(String[] args){
+					ComputerFactory factory = new ComputerFactory();
+					Computer computer = factory.produceHp();
+					computer.create();
+				} 
+			}
+			*输出： this is HpComputer
+		03多个静态方法
+			*将上面的多个工厂方法模式里的方法置为静态的，不需要创建实例，直接调用即可。
+			*修改ComputerFactory
+			public class ComputerFactory{
+				public static Computer produceHp(){
+					return new HpComputer();
+				}
+				public static Computer produceLenovo(){
+					return new LenovoComputer();
+				}
+			}
+			*测试
+			public class FactoryTest{
+				public static void main(String[] args){
+					Computer computer = ComputerFactory.produceHp();
+					computer.create();
+				} 
+			}
+			*输出： this is HpComputer
+	*总体来说，工厂模式适合：凡是出现了大量的产品需要创建，并且具有共同的接口时，可以通过工厂方法模式进行创建。
+	 在以上的三种模式中，第一种如果传入的字符串有误，不能正确创建对象，第三种相对于第二种，不需要实例化工厂类，
+	 所以，大多数情况下，我们会选用第三种——静态工厂方法模式。
+ 
+	1工厂方法模式
+		*简单工厂模式有一个问题就是，类的创建依赖工厂类，也就是说，如果想要拓展程序，必须对工厂类进行修改，因此，就用到工厂方法模式。
+		 一旦需要增加新的功能，直接增加新的接口实现类和新的工厂类就可以了，不需要修改之前的代码。
+		*创建两个电脑的共同接口
+			public interface Computer{
+				public void create();
+			}
+			*创建两个实现类
+			public class HpComputer implements Computer{
+				@Override
+				public void create(){
+					System.out.println("this is HpComputer");
+				}
+			}
+			public class LenovoComputer implements Computer{
+				@Override
+				public void create(){
+					System.out.println("this is LenovoComputer");
+				}
+			}
+			*创建两个工厂类
+			public class HpComputerFactory implements Provider{
+				@Override
+				public Computer produce(){
+					return new HpComputer();
+				}
+			}
+			public class LenovoComputerFactory implements Provider{
+				@Override
+				public Computer produce(){
+					return new LenovoComputer();
+				}
+			}
+			*再提供一个工厂接口
+			public interface Provider{
+				public Computer produce();
+			}
+			*测试类
+			public class Test{
+				public static void main(String[] args){
+					Provider provider = new HpComputerFactory();
+					Computer computer = provider.produce();
+					computer.create();
+				}
+			}
+			*输出： this is HpComputer
+			*其实这个模式的好处就是，如果你现在想增加一个功能：创建华硕电脑，则只需做一个实现类，实现Computer接口，
+			 同时做一个工厂类，实现Provider接口，就OK了，无需去改动现成的代码。这样做，拓展性较好！
+	
+	2抽象工厂模式
+		*我们一直都是生产联想和惠普的电脑，但是电脑也有多个产品线：台式机、笔记本和平板等等，联想和惠普都在生产这些
+		 不同产品线上的电脑，使用工厂方法模式已经满足不了需求，因此我们需要使用抽象工厂模式来解决这一问题。
+		*抽象产品
+			*定义抽象产品类
+			public abstract class DesktopComputer {
+			  public abstract void start();
+			}
+			public abstract class NotebookComputer {
+			   public abstract void start();
+			}
+			*两个抽象产品类分别为DesktopComputer和NotebookComputer ，用来定义两个产品线：台式机和笔记本。它们都定义了start方法，
+			 用来启动电脑。
+		*具体产品
+			*具体产品为联想和惠普旗下的台式机和笔记本，如下所示。
+			public class LenovoDesktopComputer extends DesktopComputer {
+				@Override
+				public void start() {
+					System.out.println("联想台式电脑启动");
+				}
+			}
 
-  
-   
+			public class HpDesktopComputer extends DesktopComputer {
+				@Override
+				public void start() {
+					System.out.println("惠普台式电脑启动");
+				}
+			}
+
+			public class LenovoNotebookComputer extends NotebookComputer {
+				@Override
+				public void start() {
+					System.out.println("联想笔记本电脑启动");
+				}
+			}
+			public class HpNotebookComputer extends NotebookComputer {
+				@Override
+				public void start() {
+					System.out.println("惠普笔记本电脑启动");
+				}
+			}
+		*抽象工厂
+			*接着创建生产电脑的抽象工厂，如下所示，
+			public abstract class ComputerFactory {
+				public abstract DesktopComputer createDesktopComputer();
+				public abstract NotebookComputer createNotebookComputer();
+			}
+			*定义了两个方法，分别用来生产台式电脑和笔记本电脑
+		*具体工厂
+			*定义联想和惠普工厂：
+			public class LenovoFactory extends ComputerFactory {
+				@Override
+				public DesktopComputer createDesktopComputer() {
+					return new LenovoDesktopComputer();
+				}
+				@Override
+				public NotebookComputer createNotebookComputer() {
+					return new LenovoNotebookComputer();
+				}
+			}
+
+			public class HpFactory extends ComputerFactory {
+				@Override
+				public DesktopComputer createDesktopComputer() {
+					return new HpDesktopComputer();
+				}
+
+				@Override
+				public NotebookComputer createNotebookComputer() {
+					return new HpNotebookComputer();
+				}
+			}
+			*联想工厂和惠普工厂用来生产台式机和笔记本这两个不同产品线的电脑。
+		*客户端调用
+			public class Client {
+				public static void main(String[]args) {
+					ComputerFactory lenocoFactory=new LenovoFactory();
+					lenocoFactory.createDesktopComputer().start();
+					lenocoFactory.createNotebookComputer().start();
+					ComputerFactory hpFactory=new HpFactory();
+					hpFactory.createDesktopComputer().start();
+					hpFactory.createNotebookComputer().start();
+				}
+			}
+    *工厂方法创建 "一种" 产品，他的着重点在于"怎么创建"。
+	 抽象工厂需要创建一些列产品，着重点在于"创建哪些"产品上。
   
  
        
