@@ -324,9 +324,71 @@
 					hpFactory.createNotebookComputer().start();
 				}
 			}
-    *工厂方法创建 "一种" 产品，他的着重点在于"怎么创建"。
-	 抽象工厂需要创建一些列产品，着重点在于"创建哪些"产品上。
+		*工厂方法创建 "一种" 产品，他的着重点在于"怎么创建"。
+		 抽象工厂需要创建一些列产品，着重点在于"创建哪些"产品上。
 	 
+	3.代理模式
+		*其实每个模式名称就表明了该模式的作用，代理模式就是多一个代理类出来，替原对象进行一些操作，比如我们在租房子的时候回去找中介，为什么呢？
+		 因为你对该地区房屋的信息掌握的不够全面，希望找一个更熟悉的人去帮你做，此处的代理就是这个意思。再如我们有的时候打官司，我们需要请律师，
+		 因为律师在法律方面有专长，可以替我们进行操作。
+		
+		*接口类：
+		package proxy.staticproxy;
+		public interface Person {
+			void giveMoney();
+		}
+		
+		*一个实现了接口类的实体类：
+		package proxy.staticproxy;
+		public class Student implements Person {
+			@Override
+			public void giveMoney() {
+				System.out.println(name +" 上交班费50元！");
+			}
+			private String name;
+
+			public Student(String name){
+				this.name = name;
+			}
+		}
+		
+		*一个代理类，代理类实现了接口类，并且还“爱管闲事”，调用了上面实体类的方法。
+		package proxy.staticproxy;
+		/**
+		 * 如果使用动态代理这个类会被自动创建， 代理类的工作就是把实体类接过来，然后调用它的方法，也就是说本来实体类可以自己执行的方法现在由代理类来触发执行，这样做的好处是，在调用实体类方法的前后我们可以插入监控方法。比如这里只插入了一句话“这位同学最近学习有进步”
+		 */
+		public class StudentProxy implements Person {
+			@Override
+			public void giveMoney() {
+				System.out.println("这位同学最近学习有进步！");
+				stu.giveMoney();
+			}
+
+			Student stu;
+
+			public StudentProxy (Person stu){
+				if(stu.getClass() == Student.class){ //person 可以是学生，老师等， 但是这里只为学生交钱
+					this.stu = (Student)stu;
+				}
+			}
+		}
+		
+		*最后有一个统管类, 生成一个实体类，并指挥代理类去调用实体类：
+		public class StaticProxyTest {
+			public static void main(String[] args) {
+				Person zhangsan = new Student("张三");
+
+				Person monitor = new StudentProxy(zhangsan); // 为了帮张三交班费而生产一个班长角色
+				monitor.giveMoney();
+			}
+		}
+		
+		*代理模式的应用场景：
+		如果已有的方法在使用的时候需要对原有的方法进行改进，此时有两种办法：
+		1、修改原有的方法来适应。这样违反了“对扩展开放，对修改关闭”的原则。
+		2、就是采用一个代理类调用原有的方法，且对产生的结果进行控制。这种方法就是代理模式。
+		   使用代理模式，可以将功能划分的更加清晰，有助于后期维护！
+
 *Java 中操作字符串都有哪些类？它们之间有什么区别？
 	*操作字符串的类有：String、StringBuffer、StringBuilder。
 	*String 和 StringBuffer、StringBuilder 的区别在于 String 声明的是不可变的对象，每次操作都会生成新的 String 对象，然后将指针指向新的 String 对象，
@@ -653,3 +715,70 @@
 		想把的内存中的对象状态保存到一个文件中或者数据库中时候；
 		想用套接字在网络上传送对象的时候；
 		想通过RMI（远程方法调用）传输对象的时候。
+
+*java程序编译和运行
+	编译：XXX.java --> XXX.class。编译时，如果这个类所依赖的类还没有被编译，编译器就会先编译这个被依赖的类。
+		  编译后的字节码文件主要分成两部分：常量池和方法字节码。
+		  
+	运行：分两个过程：类的加载和类的执行
+		  JVM在程序第一次主动使用类的时候，才加载该类。所以，jvm并不是在一开始就把一个程序所有的类都加载到内存（
+		  例如：命令行敲java AppMain 系统先加载MainApp类，然后执行main函数，这时发现main函数第一条命令是Animal animal = new Animal()，这时jvm才去加载Animal类）。
+参考链接：https://blog.csdn.net/cynhafa/article/details/82425456
+
+*动态代理
+	*与静态代理区别：代理类在程序运行时根据我们在java代码中的“指示”创建代理的方式被称为动态代理。而静态代理在程序编译的时候就已经将接口，被代理类，代理类确定下来了。
+		             相比与静态代理，动态代理的优势在于可以很方便的对代理类的函数进行统一的处理，而不用说修改每个代理类中的方法。比如说：在静态代理中，班长帮学生交学费，
+					 静态代理中有giveMoney()方法，里面调用的是stu.giveMoney(),我们可以在交学费之前做一些处理，比如打印该学生所需交的费用，如果这时又有另外一个交伙食费的方法，
+					 我们同样需要在交伙食费之前打印费用信息，这时，需要再次在stu.giveFoodMoney()方法之前添加打印方法，这样一来，打印费用方法就要写很多次，而动态代理，只需写一次即可。
+	*动态代理实现：jdk的动态代理主要是通过Proxy类和InvocationHandler接口生成JDK动态代理类和动态代理对象。其中：InvocationHandler用于表示在执行某个方法之前，之后你想加入什么（监控）代码。
+				   Proxy用于自动生成代理类，InvocationHandler将会作为Proxy的一个参数来生成代理类。
+				   两者通过Proxy.newInstance()方法进行关联，invocationHandler会作为参数传入Proxy， 由Proxy在编译的时候加工自动生成代理类，这个生成的代理类里就会有invocationHandler里指定的要执行的代码
+
+					public class ProxyTest {
+					public static void main(String[] args) {
+						
+							//创建一个实例对象，这个对象是被代理的对象
+							Person zhangsan = new Student("张三");
+							
+							//创建一个与代理对象相关联的InvocationHandler
+							//创建一个代理对象stuProxy来代理zhangsan，代理对象的每个执行方法都会替换执行Invocation中的invoke方法
+							Person stuProxy = (Person) Proxy.newProxyInstance(Person.class.getClassLoader(), new Class<?>[]{Person.class}, new StuInvocationHandler<Person>(zhangsan))；
+
+						   //代理执行上交班费的方法
+							stuProxy.giveMoney();
+						}
+					}
+					
+
+					import java.lang.reflect.InvocationHandler;
+					import java.lang.reflect.Method;
+
+					public class StuInvocationHandler<T> implements InvocationHandler {
+						T target;
+
+						public StuInvocationHandler(T target){
+							this.target = target;
+						}
+						@Override
+						public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+							System.out.println("代理执行"+method.getName()+"方法");
+
+							MonitorUtil.start(); //这是一个本地静态工具类，用于记下方法开始时间
+							Object result = method.invoke(target, args);
+							MonitorUtil.finish(method.getName());//这是一个本地静态工具类，用于记下方法执行完成的时间
+							return result;
+						}
+					}
+参考链接：https://www.jianshu.com/p/4e14dd223897      
+          https://www.cnblogs.com/gonjan-blog/p/6685611.html
+			 
+*Sring的两种动态代理：Jdk和Cglib
+	*JDK:java动态代理是利用反射机制生成一个实现代理接口的匿名类，在调用具体方法前调用InvokeHandler来处理。
+	*Cglib:而cglib动态代理是利用asm开源包，将代理对象类的class文件加载进来，通过修改其字节码生成子类来处理。
+	区别：（1）JDK动态代理只能对实现了接口的类生成代理，而不能针对类
+		  （2）CGLIB是针对类实现代理，主要是对指定的类生成一个子类，覆盖其中的方法
+               因为是继承，所以该类或方法最好不要声明成final 
+	注意： 1、如果目标对象实现了接口，默认情况下会采用JDK的动态代理实现AOP 
+		   2、如果目标对象实现了接口，可以强制使用CGLIB实现AOP 
+           3、如果目标对象没有实现了接口，必须采用CGLIB库，spring会自动在JDK动态代理和CGLIB之间转换
+具体区别及实现见链接：https://www.cnblogs.com/leifei/p/8263448.html
