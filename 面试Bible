@@ -1051,3 +1051,240 @@
 	4、jsonp是一种方式或者说非强制性的协议，ajax也不一定非要用json格式来传递数据。
 	5、jsonp只支持get请求，ajax支持get和post请求。
 jsonp的介绍链接：https://blog.csdn.net/hansexploration/article/details/80314948
+
+*Spring的IOC有三种注入方式：构造器注入、setter方法注入、根据注解注入
+	*对上述分类可分为两种：
+		*xml配置声明注册。然后setter、构造器注入；
+		*注解方式声明注册，然后是注解方式注入
+		
+	*构造器注入：
+		*在applicationContext.xml配置文件中注册UserService，将UserDaoJdbc通过constructor-arg标签注入到UserService的某个有参数的构造方法
+			<!-- 注册userService -->
+			<bean id="userService" class="com.lyu.spring.service.impl.UserService">
+				<constructor-arg ref="userDaoJdbc"></constructor-arg>
+			</bean>
+			<!-- 注册jdbc实现的dao -->
+			<bean id="userDaoJdbc" class="com.lyu.spring.dao.impl.UserDaoJdbc"></bean>
+		*如果只有一个有参数的构造方法并且参数类型与注入的bean的类型匹配，那就会注入到该构造方法中
+			public class UserService implements IUserService {
+
+				private IUserDao userDao;
+				
+				public UserService(IUserDao userDao) {
+					this.userDao = userDao;
+				}
+				
+				public void loginUser() {
+					userDao.loginUser();
+				}
+
+			}
+			
+		*测试
+			@Test
+			public void testDI() {
+				ApplicationContext ac = new ClassPathXmlApplicationContext("applicationContext.xml");
+				// 获取bean对象
+				UserService userService = ac.getBean(UserService.class, "userService");
+				// 模拟用户登录
+				userService.loginUser();
+			}
+		*注意：
+			*如果有多个有参数的构造方法并且每个构造方法的参数列表里面都有要注入的属性，那userDaoJdbc会注入到哪里呢？
+			 结果：会注入到只有一个参数的构造方法中，并且经过测试注入哪一个构造方法与构造方法的顺序无关
+			
+			*如果只有一个构造方法，但是有两个参数，一个是待注入的参数，另一个是其他类型的参数，那么这次注入可以成功吗？
+			 结果：失败了，即使在costract-arg标签里面通过name属性指定要注入的参数名userDao也会失败.
+
+			*如果我们想向有多个参数的构造方法中注入值该在配置文件中怎么写呢？
+				public class UserService implements IUserService {
+
+					private IUserDao userDao;
+					private User user;
+					
+					public UserService(IUserDao userDao, User user) {
+						this.userDao = userDao;
+						this.user = user;
+					}
+					
+					public void loginUser() {
+						userDao.loginUser();
+					}
+
+				}
+			 参考写法：通过name属性指定要注入的值，与构造方法参数列表参数的顺序无关。
+				<!-- 注册userService -->
+				<bean id="userService" class="com.lyu.spring.service.impl.UserService">
+					<constructor-arg name="userDao" ref="userDaoJdbc"></constructor-arg>
+					<constructor-arg name="user" ref="user"></constructor-arg>
+				</bean>
+
+				<!-- 注册实体User类，用于测试 -->
+				<bean id="user" class="com.lyu.spring.entity.User"></bean>
+
+				<!-- 注册jdbc实现的dao -->
+				<bean id="userDaoJdbc" class="com.lyu.spring.dao.impl.UserDaoJdbc"></bean>
+			
+			*如果有多个构造方法，每个构造方法只有参数的顺序不同，那通过构造方法注入多个参数会注入到哪一个呢？
+			 结果：哪个构造方法在前就注入哪一个，这种情况下就与构造方法顺序有关。
+			
+	*setter注入
+		*配置文件如下
+			<!-- 注册userService -->
+			<bean id="userService" class="com.lyu.spring.service.impl.UserService">
+				<!-- 写法一 -->
+				<!-- <property name="UserDao" ref="userDaoMyBatis"></property> -->
+				<!-- 写法二 -->
+				<property name="userDao" ref="userDaoMyBatis"></property>
+			</bean>
+
+			<!-- 注册mybatis实现的dao -->
+			<bean id="userDaoMyBatis" class="com.lyu.spring.dao.impl.UserDaoMyBatis"></bean>
+		注：上面这两种写法都可以,spring会将name值的每个单词首字母转换成大写，然后再在前面拼接上"set"构成一个方法名,然后去对应的类中查找该方法,通过反射调用,实现注入。
+		
+		*setter注入
+			public class UserService implements IUserService {
+
+				private IUserDao userDao1;
+				
+				public void setUserDao(IUserDao userDao1) {
+					this.userDao1 = userDao1;
+				}
+				
+				public IUserDao getUserDao(){
+					return userDao1;
+				}
+				
+				public void loginUser() {
+					userDao1.loginUser();
+				}
+
+			}
+
+	*基于注解的注入
+		*在使用注解注入之前，需要先进行注册，可使用以下四种注解可以注册bean，每种注解可以任意使用，只是语义上有所差异：
+			@Component：可以用于注册所有bean
+			@Repository：主要用于注册dao层的bean
+			@Controller：主要用于注册控制层的bean
+			@Service：主要用于注册服务层的bean
+			
+		*基于注解的注入分两类
+			*@Autowired Spring的注解
+				@Autowired可对类成员变量、方法及构造函数进行标注，完成自动装配的工作。通过@Autowired的使用来消除
+				上述setter注入的set，get方法。
+				
+				在使用@Autowired之前，需要 在applicationContext.xml中加入： 
+				<!-- 该 BeanPostProcessor 将自动对标注 @Autowired 的 Bean 进行注入 -->   
+				<bean class="org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor"/> 
+				Spring 通过一个 BeanPostProcessor 对 @Autowired 进行解析，所以要让 @Autowired 起作用必须事先在 Spring 容器中声明 AutowiredAnnotationBeanPostProcessor Bean。
+					
+				*对类成员变量标注
+					public class Boss {   
+						@Autowired  
+						private Car car;   
+						@Autowired  
+						private Office office;   
+					}  
+					当 Spring 容器启动时，AutowiredAnnotationBeanPostProcessor 将扫描 Spring 容器中所有 Bean，当发现 Bean 中拥有 @Autowired 注释时就找到和其匹配（默认按类型匹配）的 Bean，并注入到对应的地方中去。   
+					按照上面的配置，Spring 将直接采用 Java 反射机制对 Boss 中的 car 和 office 这两个私有成员变量进行自动注入。	
+				
+				*对方法进行标注
+					public class Boss {   
+						private Car car;   
+						private Office office;   
+						@Autowired  
+						public void setCar(Car car) {   
+							this.car = car;  
+						}   
+						@Autowired  
+						public void setOffice(Office office) {   
+							this.office = office;   
+						}   
+					}  
+					@Autowired 将查找被标注的方法的入参类型的 Bean，并调用方法自动注入这些 Bean。
+				
+				*对构造函数进行标注
+					package com.baobaotao;   
+					public class Boss {   
+						private Car car;   
+						private Office office;   
+						@Autowired  
+						public Boss(Car car ,Office office){   
+							this.car = car;   
+							this.office = office ;   
+						}   
+					}  
+					由于 Boss() 构造函数有两个入参，分别是 car 和 office，@Autowired 将分别寻找和它们类型匹配的 Bean，将它们作为 Boss(Car car ,Office office) 的入参来创建 Boss Bean。 
+			注意：*@Autowired默认根据类型，匹配不到则根据bean名字。
+				  *一个接口只有一个实现的情况下，属性名字怎么写都无所谓，因为按照类型匹配就只有一个bean
+				  *一个接口多个实现的情况下：
+　　				*属性名字跟组件名字一致，组件名字可以在声明的时候指定，比如 @Service("abc")
+ 　　				*属性名字跟组件名字不一致，配合@Qualifier 注解指定组件名字
+						例如：
+						@Service
+						public class HelloServiceImpl implements HelloService {
+							@Override
+							public void sayHello() {
+								System.out.println("say hello impl");
+							}
+						}
+						
+						@Controller
+						public class HelloController {
+							@Autowired
+							@Qualifier("helloServiceImpl")
+							private HelloService abc;
+							
+							public void hello() {
+								abc.sayHello();
+							}
+						}
+			*@Resource java的注解
+				*默认以byName的方式去匹配与属性名相同的bean的id，如果没有找到就会以byType的方式查找，如果byType查找到多个的话，使用@Qualifier注解（spring注解）指定某个具体名称的bean。
+				@Resource
+				@Qualifier("userDaoMyBatis")
+				private IUserDao userDao;
+
+				public UserService(){
+					
+				}
+			注意：在匹配到多个 bean 的情况下，JDK自带的ByName需要遍历所有的bean，而@Qualifier 直接一次定位。
+				  因此，@Qualifer 注解出现的意义或许就是 Spring 为了解决 JDK 自带的 ByName 遍历匹配效率低下的问题。
+链接：Spring常用的三种注入方法:https://blog.csdn.net/a909301740/article/details/78379720
+	  Spring中@Autowired 注解的注入规则:https://www.cnblogs.com/convict/p/10688335.html
+	  Spring@Autowired注解与自动装配:https://www.cnblogs.com/feng9exe/p/11215220.html
+	  
+*java中classpath路径详解
+	1、在编译生成的文件.classpath 中kind="src" 的类型为classpath 路径，在项目里可以用classpath：xxx方式引用。也可以手动过来自己添加、扩大classpath的范围，  <classpathentry kind="src" path="XXX"/>.
+	   也就是说你想知道classpath指的是哪里点开.classpath 看看kind="src" 的就知道了
+	2、在编译生成的项目下的bulid/classes/ 下具有的文件都是classpath 路径下的文件，都可以通过classpath：方法获取。
+	3、”src不是classpath, WEB-INF/classes,lib才是classpath”这句话不对，这是编写项目时看到的，真正的classpath是在编译后的bulid/classes/ （如2的解释）
+链接：https://www.cnblogs.com/andy-alone/p/9210558.html
+
+*BeanFactory和ApplicationContext有什么区别？
+	*描述
+		BeanFactory：
+			是Spring里面最低层的接口，提供了最简单的容器的功能，只提供了实例化对象和拿对象的功能；
+		ApplicationContext：
+			应用上下文，继承BeanFactory接口，它是Spring的一各更高级的容器，提供了更多的有用的功能；
+				1) 国际化（MessageSource）
+				2) 访问资源，如URL和文件（ResourceLoader）
+				3) 载入多个（有继承关系）上下文 ，使得每一个上下文都专注于一个特定的层次，比如应用的web层  
+				4) 消息发送、响应机制（ApplicationEventPublisher）
+				5) AOP（拦截器）
+
+	*两者装载bean的区别
+		BeanFactory：
+			BeanFactory在启动的时候不会去实例化Bean，中有从容器中拿Bean的时候才会去实例化；
+		ApplicationContext：
+			ApplicationContext在启动的时候就把所有的Bean全部实例化了。它还可以为Bean配置lazy-init=true来让Bean延迟实例化； 
+			
+	*我们该用BeanFactory还是ApplicationContent
+		延迟实例化的优点：（BeanFactory）
+			应用启动的时候占用资源很少；对资源要求较高的应用，比较有优势； 
+			
+		不延迟实例化的优点： （ApplicationContext）
+			1. 所有的Bean在启动的时候都加载，系统运行的速度快； 
+			2. 在启动的时候所有的Bean都加载了，我们就能在系统启动的时候，尽早的发现系统中的配置问题 
+			3. 建议web应用，在启动的时候就把所有的Bean都加载了。（把费时的操作放到系统启动中完成） 
+详情链接：https://www.iteye.com/blog/youyu4-2346183
