@@ -847,7 +847,7 @@
 		码并转换成代理类Class对象的一种方法
 	  ）
 	  
-* 什么是 Java 序列化？什么情况下需要序列化？
+*什么是 Java 序列化？什么情况下需要序列化？
 	*Java 序列化是为了保存各种对象在内存中的状态，并且可以把保存的对象状态再读出来。
 	*以下情况需要使用 Java 序列化：
 		想把的内存中的对象状态保存到一个文件中或者数据库中时候；
@@ -910,7 +910,7 @@
 参考链接：https://www.jianshu.com/p/4e14dd223897      
           https://www.cnblogs.com/gonjan-blog/p/6685611.html
 			 
-*Sring的两种动态代理：Jdk和Cglib
+*Spring的两种动态代理：Jdk和Cglib
 	*JDK:java动态代理是利用反射机制生成一个实现代理接口的匿名类，在调用具体方法前调用InvokeHandler来处理。
 	*Cglib:而cglib动态代理是利用asm开源包，将代理对象类的class文件加载进来，通过修改其字节码生成子类来处理。
 	区别：（1）JDK动态代理只能对实现了接口的类生成代理，而不能针对类
@@ -1055,8 +1055,8 @@ jsonp的介绍链接：https://blog.csdn.net/hansexploration/article/details/803
 
 *Spring的IOC有五种注入方式：构造器注入、setter方法注入、静态工厂注入、实例工厂注入、根据注解注入
 	*对上述分类可分为两种：
-		*xml配置声明注册。然后setter、构造器注入、静态工厂注入、实例工厂注入；
-		*注解方式声明注册，然后是注解方式注入
+		*xml配置声明注册: setter、构造器注入、静态工厂注入、实例工厂注入；
+		*注解方式声明注册:然后是注解方式注入
 		
 	*构造器注入：
 		*在applicationContext.xml配置文件中注册UserService，将UserDaoJdbc通过constructor-arg标签注入到UserService的某个有参数的构造方法
@@ -1388,3 +1388,94 @@ jsonp的介绍链接：https://blog.csdn.net/hansexploration/article/details/803
 
     5.autodetect —— 如果找到默认的构造函数，使用“自动装配用构造”; 否则，使用“按类型自动装配”。（已经遗弃了）
 详情链接：https://blog.csdn.net/qq_24313635/article/details/82054239
+
+*spring的事务传播行为：
+	spring事务的传播行为说的是，当多个事务同时存在的时候，spring如何处理这些事务的行为。
+
+    ① PROPAGATION_REQUIRED：如果当前没有事务，就创建一个新事务，如果当前存在事务，就加入该事务，该设置是最常用的设置。
+
+    ② PROPAGATION_SUPPORTS：支持当前事务，如果当前存在事务，就加入该事务，如果当前不存在事务，就以非事务执行。‘
+
+    ③ PROPAGATION_MANDATORY：支持当前事务，如果当前存在事务，就加入该事务，如果当前不存在事务，就抛出异常。
+
+    ④ PROPAGATION_REQUIRES_NEW：创建新事务，无论当前存不存在事务，都创建新事务。
+
+    ⑤ PROPAGATION_NOT_SUPPORTED：以非事务方式执行操作，如果当前存在事务，就把当前事务挂起。
+
+    ⑥ PROPAGATION_NEVER：以非事务方式执行，如果当前存在事务，则抛出异常。
+
+    ⑦ PROPAGATION_NESTED：如果当前存在事务，则在嵌套事务内执行。如果当前没有事务，则按REQUIRED属性执行。
+注意：使用 PROPAGATION_REQUIRES_NEW时，内层事务与外层事务就像两个独立的事务一样，一旦内层事务进行了提交后，外层事务不能对其进行回滚。两个事务互不影响。两个事务不是一个真正的嵌套事务。同时它需要JTA事务管理器的支持。
+	  使用PROPAGATION_NESTED时，外层事务的回滚可以引起内层事务的回滚。而内层事务的异常并不会导致外层事务的回滚。
+详情链接：https://blog.csdn.net/weixin_39625809/article/details/80707695
+
+*Spring的编程式事务
+详情链接：https://blog.csdn.net/zhangcongyi420/article/details/89415613
+
+*jsonp
+	jsonp是用来解决Ajax直接请求普通文件存在跨域无权限访问的问题的，jsonp（json Protocol）该协议的一个要点就是允许用户传递一个callback参数给服务端，然后服务端返回数据时会将这个callback参数作为函数名来包裹住JSON数据，
+	这样客户端就可以随意定制自己的函数来自动处理返回数据了。
+详情链接；https://blog.csdn.net/hansexploration/article/details/80314948
+
+*跨域及如何解决跨域问题
+	什么是跨域？
+		跨域，指的是浏览器不能执行其他网站的脚本。它是由浏览器的同源策略造成的，是浏览器施加的安全限制。
+		所谓同源是指，域名，协议，端口均相同，不明白没关系，举个栗子：
+
+		http://www.123.com/index.html 调用 http://www.123.com/server.php （非跨域）
+		http://www.123.com/index.html 调用 http://www.456.com/server.php （主域名不同:123/456，跨域）
+		http://abc.123.com/index.html 调用 http://def.123.com/server.php （子域名不同:abc/def，跨域）
+		http://www.123.com:8080/index.html 调用 http://www.123.com:8081/server.php （端口不同:8080/8081，跨域）
+		http://www.123.com/index.html 调用 https://www.123.com/server.php （协议不同:http/https，跨域）
+		请注意：localhost和127.0.0.1虽然都指向本机，但也属于跨域。
+		浏览器执行javascript脚本时，会检查这个脚本属于哪个页面，如果不是同源页面，就不会被执行。
+	
+	如何解决：
+		1.Jsonp
+		2.代理
+详情链接：https://blog.csdn.net/lambert310/article/details/51683775
+
+*一个请求在Struts2框架中的处理分以下几个步骤：
+	1.客户端初始化一个指向Servlet容器的请求
+	2.这个请求经过一系列的过滤器，其中有一个StrutsPrepareAndExecuteFilter被调用，用来询问ActionMapper来决定这个请求是否
+	  需要调用某个Action
+	3.如果ActionMapper决定需要调用某个Action，Struts2PrepareAndExecuteFilter把请求处理交给ActionProxy
+	4.ActionProxy通过ConfigurationManger询问框架的配置文件(Struts.xml)，找到需要调用的Action类
+	5.ActionProxy创建一个ActionInvocation的实例
+	6.ActionInvocation在调用Action的过程前后，涉及到相关Intercepter的调用
+	7.一旦Action执行完毕，ActionInvocation负责根据struts.xml中的配置找到对应的返回结果，返回结果通常是（但不总是，也可能是
+	  另外一个Action链）一个需要被表示的Jsp或者FreeMarker模板。
+详情链接：https://www.imooc.com/article/39834
+
+*springMVC和struts2的区别有哪些?
+
+（1）springmvc的入口是一个servlet即前端控制器（DispatchServlet），而struts2入口是一个filter过虑器（StrutsPrepareAndExecuteFilter）。
+
+（2）springmvc是基于方法开发(一个url对应一个方法)，请求参数传递到方法的形参，可以设计为单例或多例(建议单例)，struts2是基于类开发，传递参数是通过类的属性，只能设计为多例。
+
+（3）Struts采用值栈(值栈（ValueStack）就是 OGNL 表达式存取数据的地方。在一个值栈中，封装了一次请求所需要的所有数据。)存储请求和响应的数据，通过OGNL存取数据，
+     springmvc通过参数解析器是将request请求内容解析，并给方法形参赋值，将数据和视图封装成ModelAndView对象，最后又将ModelAndView中的模型数据通过reques域传输到页面。Jsp视图解析器默认使用jstl。
+
+（4）struts有以自己的interceptor机制，springmvc用的是独立的AOP方式。
+
+*SpringMVC常用的注解有哪些？
+
+	@RequestMapping：用于处理请求 url 映射的注解，可用于类或方法上。用于类上，则表示类中的所有响应请求的方法都是以该地址作为父路径。
+
+	@RequestBody：注解实现接收http请求的json数据，将json转换为java对象。
+
+	@ResponseBody：注解实现将conreoller方法返回对象转化为json对象响应给客户。
+	
+	@Autowired注解是按照类型（byType）装配依赖对象
+	
+	@Resource默认按照ByName自动注入
+	
+*SpringMvc中函数的返回值是什么？
+	返回值可以有很多类型,有String, ModelAndView。ModelAndView类把视图和数据都合并的一起的，但一般用String比较好。
+		@RequestMapping("/m06")
+		public ModelAndView m06() {
+			ModelAndView modelAndView = new ModelAndView();
+			modelAndView.setViewName("m06");//视图名称
+			modelAndView.addObject("message", "Hello World, Hello Kitty");//数据
+			return modelAndView;
+		}
